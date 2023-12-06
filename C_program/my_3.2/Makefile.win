@@ -1,0 +1,43 @@
+# Project: PrintTextFile
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe -D__DEBUG__
+CC       = gcc.exe -D__DEBUG__
+WINDRES  = windres.exe
+OBJ      = main.o cmd_directly_print.o cmd_add_linenumber.o cmd_scan.o cmd_(d)_order_print.o cmd_del_blank_order.o
+LINKOBJ  = main.o cmd_directly_print.o cmd_add_linenumber.o cmd_scan.o cmd_(d)_order_print.o cmd_del_blank_order.o
+LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc -g3
+INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
+CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
+BIN      = PrintTextFile.exe
+CXXFLAGS = $(CXXINCS) -g3
+CFLAGS   = $(INCS) -g3
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.c
+	$(CC) -c main.c -o main.o $(CFLAGS)
+
+cmd_directly_print.o: cmd_directly_print.c
+	$(CC) -c cmd_directly_print.c -o cmd_directly_print.o $(CFLAGS)
+
+cmd_add_linenumber.o: cmd_add_linenumber.c
+	$(CC) -c cmd_add_linenumber.c -o cmd_add_linenumber.o $(CFLAGS)
+
+cmd_scan.o: cmd_scan.c
+	$(CC) -c cmd_scan.c -o cmd_scan.o $(CFLAGS)
+
+cmd_(d)_order_print.o: cmd_(d)_order_print.c
+	$(CC) -c cmd_(d)_order_print.c -o cmd_(d)_order_print.o $(CFLAGS)
+
+cmd_del_blank_order.o: cmd_del_blank_order.c
+	$(CC) -c cmd_del_blank_order.c -o cmd_del_blank_order.o $(CFLAGS)
