@@ -1,5 +1,6 @@
 # zju_cs
-My note warehouse
+My note warehouse<br/>
+仅做存档，除课程相关资料外，版权归我所有
 
 ## 目录
 ### 大一下
