@@ -1,0 +1,7 @@
+{ 
+    #define IN_MULTI 1 
+    #define IN_SINGLE 2 
+    #define IN_SINGLE_QUOT 4 
+
+}          
+void Pack(FILE *src, FILE *dst) 
