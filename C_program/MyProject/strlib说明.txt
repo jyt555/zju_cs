@@ -1,0 +1,29 @@
+（string）	s = Concat("ABC", "DE") returns the string"ABCDE".
+
+（char）	c = IthChar(s, i)，返回数组中第i位的字符，类似于选择s[i]
+
+（string）	s = SubString(s, p1, p2)，返回s的子字符串的副本
+
+（string）	s = CharToString(ch)，字符转化成字符串
+
+（int）	len = StringLength(s)
+
+（string）	newstr = CopyString(s)，s复制到动态分配存储，并返回新串
+
+（bool）	if (StringEqual(s1, s2)) ...
+
+（int）	if (StringCompare(s1, s2) < 0) ...（s1 before s2，<0）
+
+（int）	p = FindString(str, text, start)，从(int)start搜索text，找到返回首地址，否则返回-1
+
+（string）	s = ConvertToLowerCase(s)，返回转化为小写的新字符串
+
+（string）	s = ConvertToUpperCase(s)，大写
+
+（string）	s = IntegerToString(n)
+
+（int）	n = StringToInteger(s)
+
+（string）	s = RealToString(d)
+
+（double）	d = StringToReal(s)
