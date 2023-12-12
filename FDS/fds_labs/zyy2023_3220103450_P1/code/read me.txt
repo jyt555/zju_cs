@@ -1,0 +1,5 @@
+The folder contains the source code file (.c), report(.pdf), and the executable file (.exe) in the zip package.
+
+The source code file can be compiled and executed by devc++ or vscode (here defines K=1000, K is the number of times the program runs, different compilers may need to 【change different values】, such as K=10000).
+
+It is also possible to unzip and run the executable, but it is worth noting that this executable runs under 【Ubuntu (wsl)】 and is not suitable for windows systems.
