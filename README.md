@@ -5,6 +5,7 @@ My note warehouse<br/>
 ## 目录
 ### 大一下
 * `C_program`: 程序设计专题
+* `Discrete_Mathematics_and_its_Applications`: 离散数学及其应用
 ### 大二上
 * `ICS-Patt`: 计算机系统概论（短学期）
 * 待续
