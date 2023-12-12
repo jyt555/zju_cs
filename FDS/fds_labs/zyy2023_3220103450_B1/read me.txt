@@ -1,0 +1,18 @@
+1/ Compile the cpp file (in c language, but the requirements say to send the mailbox in cpp form) and run it. You can also use executable files in compressed packages.
+
+2/ There is no requirement to write a report in the description document, and the others also said that TA said no need for a report, so I did 【not write the report】.
+
+3/ This code 【completely passed the test on PTA】, but when I tested it with the compiler myself, I found a small problem: I need to input an extra line of data to fully output the result (the extra input data does not affect the result and will not be output), otherwise the program is still running.
+
+(For example, when I input the test sample given by the bonus problem on the PTA, I can directly output the expected result:
+20 5
+32 1
+11 3
+ERROR
+100 5
+However, when I do this with my compiler, it just output 4 lines:
+20 5
+32 1
+11 3
+ERROR
+And it is necessary to input something (such as 'I 99') to input '100 5' and end the program.
