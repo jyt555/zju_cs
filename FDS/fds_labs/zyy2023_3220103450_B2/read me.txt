@@ -1,0 +1,16 @@
+1/ Compile the cpp file and run it. 
+You can also use executable files in compressed packages.
+
+2/ There is no requirement to write a report in the description document, 
+and the others also said that TA said no need for a report, so I did 【not write the report】.
+
+3/ This code 【completely passed the test on PTA】
+
+SAMPLE INPUT:
+13 3
+81 94 11 96 12 99 17 35 28 58 41 75 15
+
+SAMPLE OUTPUT:
+11 81 94 96 99
+12 17 28 35 41 58 75
+15
