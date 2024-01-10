@@ -6,6 +6,9 @@
 
 作业中标*的题目可以在[官方网站](https://media.pearsoncmg.com/ph/wps-wraps/ecs_mano_lcdf_5/cw/content/Problem.php)上找到答案:`https://media.pearsoncmg.com/ph/wps-wraps/ecs_mano_lcdf_5/cw/content/Problem.php`
 
-答案更正：
+---
 
-* `!CLDF5`7.1: a) A=16; b) A=19.
+`!CLDF5`答案更正：
+
+* 6-6: (a) Starting from an initial state of `1000`.
+* 7-1: (a) A=`16`; (b) A=`19`.
