@@ -1,6 +1,6 @@
 # zju_cs
 My note warehouse<br/>
-仅做存档，除课程相关资料外，版权归我所有
+仅做存档
 
 ## 目录
 ### 大一下
@@ -12,5 +12,8 @@ My note warehouse<br/>
 * `FDS`: 数据结构基础
 * `University_Physics_B`: 大学物理（乙）
 * `Digital_Logic_Design`: 数字逻辑设计
-* `Probability_theory_and_mathematical_statistics`: 概率论与数理统计 
+* `Probability_theory_and_mathematical_statistics`: 概率论与数理统计
+### 大二下
+* `Plant_Microbial`: 植物-微生物的相互作用及可持续农业（农学院国际化）
+* `Career_Planning`: 职业生涯规划
 * 待续
