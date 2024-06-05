@@ -16,4 +16,9 @@ My note warehouse<br/>
 ### 大二下
 * `Plant_Microbial`: 植物-微生物的相互作用及可持续农业（农学院国际化）
 * `Career_Planning`: 职业生涯规划
+* `ADS`: 高级数据结构与算法分析
+* `Computer_Organization`: 计算机组成
+* `Cryptography`: 密码学
+* `DB`: 数据库系统
+* `OOP`: 面向对象程序设计
 * 待续
