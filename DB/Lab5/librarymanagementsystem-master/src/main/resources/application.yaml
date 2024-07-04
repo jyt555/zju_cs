@@ -1,0 +1,6 @@
+host: "FINE"
+port: "1433"
+user: "sa"
+password: "databasesa"
+db: "library"
+type: "sqlserver"
