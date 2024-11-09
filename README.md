@@ -21,4 +21,6 @@ My note warehouse<br/>
 * `Cryptography`: 密码学
 * `DB`: 数据库系统
 * `OOP`: 面向对象程序设计
+###大三上
+* `Model`：趣味视觉AI实战特训（短学期）
 * 待续
