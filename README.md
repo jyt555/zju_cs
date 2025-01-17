@@ -28,4 +28,6 @@ My note warehouse<br/>
 * `OS`：操作系统
 * `Java`：Java应用技术
 * `CN`：计算机网络
+* `VIS`：数据可视化导论 https://github.com/jyt555/24fall_VIS
+* `BS`：B/S软件体系设计
 * 待续
