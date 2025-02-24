@@ -1,0 +1,4 @@
+com\example\SearchEngineApp.class
+com\example\DocumentIndexer.class
+com\example\SearchEngine.class
+com\example\SearchResult.class
