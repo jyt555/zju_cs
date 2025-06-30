@@ -1,0 +1,60 @@
+NLP-Lab1 Word2vec词向量训练实验
+学号	姓名
+3220103450	姜雨童
+1.	Project Introduction
+1.	选题
+词向量是自然语言处理（NLP）中极为基础的部分，这种技术将词映射成向量，将自然语言转化成向量计算，从而使语言处理模型认识自然语言文本。
+2.	工作简介
+本实验主要涉及在ModelArts平台上，基于Python和gensim框架完成词向量的训练，以及相似语义词的搜索和扩展。
+3.	开发环境及系统运行要求
+软件环境：Python3.7、Gensim
+开发环境：ModelArts Ascend Notebook环境
+2.	Technical Details
+1.	理论知识
+词向量：Word2vec的核心思想是通过给定词的上下文信息学习分布式表示，并将词映射到低维的稠密向量空间，以确保相似词在向量空间中距离较近。其中涉及到两个模型：CBOW和Skip-gram。
+CBOW：Continuous Bag-of-Words，通过上下文词预测目标词。
+Skip-gram：通过目标词预测上下文词，适合处理低频词。
+ 
+（图片来源: 词向量 | word2vec | 理论讲解+代码 | 文本分析【python-gensim】_哔哩哔哩_bilibili）
+补充：Word2vec存在其局限性，如处理中文时需要事先进行分词处理（分词粒度等效果在多数情况下会影响词向量的质量），本实验使用的给定语料（corpus.txt）已事先进行过分词处理。
+2.	具体算法
+使用Skip-gram模型进行训练，其架构如下：
+		输入层：目标词的one-hot编码向量
+		嵌入层：将one-hot向量映射为稠密向量
+		输出层：计算上下文词的概率分布
+示意：输入词 -> Embedding层（稠密向量） -> 输出层（上下文概率）
+3.	技术细节
+核心代码（本实验中代码直接使用给定ipynb中的参考代码）：
+model = Word2Vec(corpus_file=corpus_file, vector_size=100, window=5, min_count=5, workers=cpu_count(), sg=1)
+model.wv.save_word2vec_format(out_embedding_file, binary=False)
+-	调用 Word2Vec(corpus_file=corpus_file, ...) 直接训练模型。
+-	使用 model.wv.save_word2vec_format(…) 将词向量保存为文本格式。
+模型参数配置：
+-	corpus_file：输入数据，即给定的经过分词处理的语料库（corpus.txt）
+-	vector_size：词向量维度，为100
+-	window：上下文窗口大小，为5
+-	min_count：词语的最小出现频次，为5即忽略出现五次以内的低频词
+-	workers：启用多线程加速
+-	sg：使用skip-gram模型（通过目标词预测上下文词）
+3.	Experiment Results
+1.	实验过程
+进入notebook，上传文件，并安装gensim库：
+ 
+（忽略数据同步的步骤）导入使用的库，定义输入/输出的文件路径：
+ 
+训练词向量并保存：
+ 
+
+2.	实验结果
+本实验成功将输入的语料转化成对应词向量，并实现对词向量的相似度分析：
+ 
+（语料）
+ 
+（词向量，由于文件过大无法下载，只能在notebook预览）
+在ipynb内获取单个词的词向量（此处以“杭州”为例）：
+ 
+进行相似度测试（输出最接近的几个词语，如“水面”和“人工湖”，“上海”和“北京”）：
+ 
+References:
+1.	【白话NLP】什么是词向量 - 知乎
+2.	词向量(one-hot/SVD/NNLM/Word2Vec/GloVe) - 西多士NLP - 博客园

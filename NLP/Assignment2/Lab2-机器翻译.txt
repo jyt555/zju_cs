@@ -1,0 +1,92 @@
+NLP-Lab2 Transformer中英文翻译实验
+学号	姓名
+3220103450	姜雨童
+1.	Project Introduction
+1.	选题
+机器翻译是人工智能在日常生活领域一个比较普遍和广泛的应用，中英机器翻译也是自然语言处理中较为核心的任务之一。
+早期的机器翻译使用循环神经网络等传统模型，这些模型依赖循环单元或是卷积操作，存在长距离依赖等问题。而谷歌研究人员提出的Transformer模型则使用自注意力机制和前馈神经网络，能够直接对序列中任意两个单元进行建模，很好地解决了上述问题，也因此席卷整个NLP领域。
+2.	工作简介
+本实验主要涉及基于MindSpore（华为的深度学习框架）实现Transformer中英文翻译模型的训练，并使用评估测试函数对训练后的模型进行评估。
+3.	开发环境及系统运行要求
+软件环境：Python3.7.5、MindSpore1.1
+开发环境：ModelArts Ascend Notebook环境
+2.	Technical Details
+内容包括：
+（1）	工程实践当中所用到的理论知识阐述
+（2）	具体的算法，请用文字、示意图或者是伪代码等形式进行描述（不要贴大段的代码）
+（3）	程序开发中重要的技术细节，比如用到了哪些重要的函数？这些函数来自于哪些基本库？功能是什么？自己编写了哪些重要的功能函数？等等
+1.	理论知识
+Transformer模型：和以往的模型类似，transformer模型也采用了encoder-decoder架构（图1）。 
+ 
+（图1 Transformer架构）
+Encoder包含self-attention层和一个前馈神经网络，self-attention帮助当前节点在关注当前词的基础上，获取上下文语义；decoder包含同样的两层网络，但是中间还有一个attention层，帮助当前节点获取需要关注的重点内容。
+ 
+（图2 encoder层和decoder层内部分层）
+更具体来说，self-attention层计算当前词对于句子其他部分的关注度。例如The animal didn't cross the street because it was too tired，机器并不知道it知道的是前文的animal还是street，而通过对不同单词赋予不同关注度的值，可以让机器把it和animal而不是street联系起来。
+Transformer还给encoder层和decoder层的输入部分添加了一个额外的向量Positional Encoding，用于决定当前词的位置，以解决输入序列中单词顺序无法解释的问题。
+2.	具体算法
+使用Transformer模型架构（encoder-decoder结构），伪代码如下：
+# 1. 数据加载
+dataset = load_dataset(cfg.batch_size, cfg.data_path)
+# ----------------------------
+# 2. 模型构建
+netwithloss = TransformerNetworkWithLoss(transformer_net_cfg, is_training=True)
+# ----------------------------
+# 3. 优化器配置
+lr_schedule = create_dynamic_lr(…)
+optimizer = Adam(params=net_with_loss.trainable_params(), learning_rate=lr_schedule)
+# ----------------------------
+# 4. 损失缩放管理
+if cfg.enable_lossscale:
+    scale_manager = DynamicLossScaleManager(…)
+    update_cell = scale_manager.get_update_cell()
+# ----------------------------
+# 5. 训练循环
+model.train(…)
+具体包含以下核心步骤：
+1.	数据加载：从MindRecord文件中读取预处理后的数据，构建数据迭代器
+2.	模型构建：根据配置选择Transformer版本（basic或large），结合损失函数构建训练网络
+3.	优化器配置：使用Adam优化器，结合动态学习率调度策略进行优化
+4.	损失缩放管理：针对混合精度训练的梯度下溢问题进行动态缩放
+5.	训练循环：执行多轮训练
+3.	技术细节
+本实验直接使用给出的参考代码，其中使用的重要函数如下：
+函数名	来源库	功能描述
+context.set_context	MindSpore	设置执行模式（GRAPH_MODE）等参数
+load_checkpoint	MindSpore	从.ckpt文件加载模型参数，支持断点续训
+Adam	MindSpore.nn	优化器，结合动量法和自适应学习率，适合大规模参数更新
+DynamicLossScaleManager	MindSpore.train	动态损失缩放，解决混合精度训练中的梯度下溢问题
+create_dynamic_lr	自定义模块	实现Transformer推荐的余弦退火学习率调度策略
+Tokenizer.tokenize	自定义模块	对文本进行分词，英语使用空格分词，中文需替换为jieba等工具
+
+3.	Experiment Results
+1.	实验过程
+将实验用的脚本和训练数据传入notebook，并导入项目用到的依赖库：
+ 
+ 
+设置运行环境，指定硬件使用专为AI计算设计的Ascend芯片，定义数据处理相关的参数：
+ 
+定义并执行数据处理函数，加载原始数据后将其分成训练数据和测试数据，并保存成模型输入所需的数据形式：
+ 
+定义数据加载函数，打印信息验证数据能否正确加载：
+ 
+ 
+定义训练Transformer模型的训练函数及相关配置参数：
+ 
+运行训练函数，开始训练模型：
+ 
+定义推理评估函数及相关参数配置：
+ 
+ 
+运行函数，启动评估测试，打印出测试结果：
+ 
+
+2.	实验结果
+查看测试结果，发现训练后的模型基本能正确将英文翻译成中文，不过也存在部分完全翻译不对的情况（如下方图2的“which way is Central Park？”的翻译）。
+另外，虽然机器能大致翻译正确，但是在词语的表述细节上仍存在偏差（如下方图3“his word”被翻译成了“估计划”，a“a big day”被翻译成了“大学的一天”）。
+ 
+ 
+ 
+
+References:
+1.	Transformer模型详解 - Welcome to AI World

@@ -1,0 +1,94 @@
+NLP-Lab1 TextCNN情感分析实验
+学号	姓名
+3220103450	姜雨童
+1.	Project Introduction
+1.	选题
+文本分类是一种利用计算机将文本按照一定标准进行分类的自然语言处理任务，有着广泛的应用场景。
+情感分类是其中一个应用场景，其利用计算机实现文本标注的自动化，有效克服人工标注数据耗时耗力且标注受标注者主观意识影响的问题，有较高的应用价值。
+2.	工作简介
+本实验主要基于MindSpore搭建TextCNN模型，利用卷积神经网络对电影评论信息进行情感分析，判断评论的情感倾向。
+3.	开发环境及系统运行要求
+软件环境：MindSpore1.1
+开发环境：ModelArts Ascend Notebook环境
+2.	Technical Details
+1.	理论知识
+文本分类基本流程：数据收集和预处理、分词、特征提取、模型训练、文本标注、模型测试与评估（、参数调整与优化）。
+CNN：Convolutional Neural Network，卷积神经网络，最早应用于图象分类任务，是一种利用不同尺寸的卷积核提取文本局部特征的技术。
+ 
+（图片来源：自然语言处理—文本分类综述【万字长文】 - 知乎）
+如上图所示，CNN首先将文本的词向量拼成矩阵，随后该矩阵进入卷积层通过不同维度的滤波器，最后经过池化层，将结果连接起来得到文本的向量表示，可以用于后续的文本分类。
+2.	具体算法
+本实验基于MindSpore框架搭建TextCNN模型，其算法流程如下：
+		输入层：输入经过预处理的文本，即词索引
+		嵌入层：将词索引映射成为词向量
+		卷积层：使用不同高度卷积核进行操作
+		最大池化：对每个卷积核的输出沿序列维度取最大值，得到特征向量
+		特征连接：将三种卷积核的输出连接成为新的向量
+		全连接层：输出分类结果（表示积极/消极情感）
+关键代码逻辑如下：
+class TextCNN(nn.Cell):
+    def __init__(self, vocab_len, word_len, ...):
+        self.embedding = nn.Embedding(...)  # 嵌入层
+        self.layer1 = self.make_layer(kernel_height=3)  # 卷积核尺寸3
+        self.layer2 = self.make_layer(kernel_height=4)  # 卷积核尺寸4
+        self.layer3 = self.make_layer(kernel_height=5)  # 卷积核尺寸5
+        self.fc = nn.Dense(...)  # 全连接层
+其中各阶段数据形式如下图所示：
+输入：[batch_size, 51]  
+嵌入层 → [batch_size, 1, 51, 40]  
+卷积3x40 → ReLU → MaxPool → [batch_size, 96]  
+卷积4x40 → ReLU → MaxPool → [batch_size, 96]  
+卷积5x40 → ReLU → MaxPool → [batch_size, 96]  
+拼接 → [batch_size, 288]  
+Dropout → Dense → [batch_size, 2]  
+3.	技术细节
+本次实验使用的代码就是给出的参考代码（只在“实验结果-在线测试”阶段对测试用例进行了修改），其中主要的技术难点在于数据预处理和模型训练：
+数据预处理：
+首先预览了部分数据集内语料以保证其正确读入，随后进行了数据清洗和词表的构建，以便于后续环节。
+在数据清洗阶段read_data( )，程序主要去除了文本内的数字、标点、多余空格等噪声，并将文本格式统一为小写。
+在词表构建阶段text2vec( )，程序主要统计所有单词以生成词表Vocab{word: index}，并将句子转化成固定长度的索引序列。若处在在线推理环节，则针对未在词表中出现的单词直接输出相应提示信息。
+最后在split_dataset( )部分将其按比例划分成训练集和测试集。
+模型构建与训练：
+此处先对学习率做了动态规划（分为warm_up、shrink、normal_run三个阶段），随后利用TextCNN算法构建模型，利用ModelCheckpoint( )和load_checkpoint( )来定期保存模型参数/加载预训练模型进行训练或推理。
+模型训练涉及的核心代码如下：
+opt = nn.Adam(...)  # 优化器
+loss = nn.SoftmaxCrossEntropyWithLogits(...)  # 损失函数
+model = Model(net, loss_fn=loss, optimizer=opt, ...)
+model.train(...)  # 训练
+3.	Experiment Results
+1.	实验过程
+上传文件及数据到notebook，并导入依赖库：
+ 
+进行超参数设置，统一管理参数：
+ 
+模型训练前先对数据做预处理：
+首先进行数据预览，打印出部分积极与消极评价的语料，以确保数据能够正确加载。
+ 
+随后清洗数据（去除标点、数字、换行等）并进行分词，将句子转化成向量，将数据集分割成训练集和测试集。
+ 
+ 
+构建TextCNN模型，设置参数并进行模型训练：
+ 
+ 
+训练结束打印出反馈：
+ 
+测试评估环节，在测试集上测试模型的准确度，此处输出准确度为76.26%：
+ 
+
+2.	实验结果
+本次实验成功基于MindSpore框架训练出文本分类模型，用于分析电影评价的情感倾向。此模型针对测试集的准确度为76.26%。
+随后进行在线测试，随机采样验证模型的准确度，可以看出模型的评估准确度较高。
+-	输入“The movie is so boring.”，模型反馈其为消极评价：
+ 
+-	输入“This is a long file but worth seeing.”（在积极评价语料库中出现），模型反馈其为积极评价：
+ 
+ 
+-	输入“I hope it would be a good film, unfortunately it wasn’t.”（虚拟语气中出现了积极评价，但是后续存在转折），模型反馈为消极评价：
+ 
+-	输入一段来自imdb（Internet movie database）的影评（两星，消极评价），模型反馈部分单词未在基于训练语料库生成的字典中出现，且此影评为消极评价：
+ 
+ 
+References:
+1.	文本分类综述（一文搞懂文本分类） - 知乎
+2.	自然语言处理—文本分类综述【万字长文】 - 知乎
+3.	什么是文本分类？ | 文本分类全面指南 | Elastic
