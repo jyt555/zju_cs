@@ -1,0 +1,129 @@
+基于Mindspore 的Prompt Tuning 实验
+学号	姓名
+3220103450	姜雨童
+1.Project Introduction
+1-1选题
+提示微调（Prompt Tuning）是自然语言处理中一种创新的方法，通过设计合适的“提示”（特定输入模板或可学习的嵌入向量），引导预训练语言模型适配下游任务。
+1-2工作简介
+实验主要涉及在ModelArts平台上，基于MindSpore框架，在情感分类任务中分别实现硬提示（固定模板）与软提示（可学习嵌入）的应用，并对比两者的性能差异，探索提示学习的实际效果与优化空间。
+1-3开发环境及系统运行要求
+软件环境：Python3.9（框架：MindSpore 2.4.0）
+硬件环境：Ascend 1*ascend-snt9b1（ARM架构，24核CPU，192GB内存）
+开发环境：ModelArts Ascend Notebook环境
+2.Technical Details
+2-1 理论知识
+提示学习（Prompt Learning）：是一种高效的微调方法，通过设计特定输入模板或可学习的嵌入向量，在仅对少量参数做微调的前提下引导预训练语言模型（PLM）适配下游任务。其核心思想是模仿人类提问的方式，通过设计合适的“提示”将任务转化为语言模型更容易理解的“填空”形式。
+
+硬提示（Hard Prompt）学习：通过将固定的预定义标记（如本实验情景下要求实现情感分类，使用“这个句子的情感是：”）直接拼接在输入文本前，引导模型关注任务目标（在本实验情景下，模型根据包含上述硬提示的输入来预测原定输入的情感取向）。其优点是简单直观，缺点是其性能高度依赖模板设计。
+
+
+软提示（Soft Prompt）学习：在输入前添加一组可训练的嵌入向量（而非固定的具体文本），在训练过程中根据下游任务的需求优化并更新这些向量（在本实验情景下，在嵌入层输出结果前添加软提示嵌入向量，然后将其作为新的嵌入层输出结果）。软提示无需人工设计模板，具有更强的灵活性和任务适配能力。
+
+2-2 具体算法
+实验要求在情感分类任务上实现硬提示与软提示训练，大致分为四个部分：
+环境配置与依赖安装、数据预处理、硬提示推理、软提示训练。
+其中数据预处理部分的任务是完成文本清理、分词、索引化和张量化，这部分代码实现逻辑与lab2类似，这里不做赘述。
+2-2-1 硬提示推理
+硬提示推理的流程为：
+原始输入 --> 添加硬提示 --> 模型编码 --> 预测标签 --> 评估结果
+整体实现通过修改输入文本结构完成。例如，原始文本“电影剧情紧凑，非常精彩”经预处理后，与固定模板“这个句子的情感是：”拼接，形成完整输入序列。在代码中，这一过程通过动态构建输入字符串实现：
+batch_texts = [f"{HARD_PROMPT}{' '.join([vocab_inv[idx] for idx in seq if idx != 0})" ...]  
+RoBERTa-large模型对拼接后的文本进行编码，输出分类结果。由于硬提示未经过训练，其性能依赖于预训练模型对模板的语义理解能力，本实验中直接调用model(inputs)完成推理，最终通过准确率评估效果。
+2-2-2 软提示训练
+软提示的微调过程通过PEFT（Parameter-Efficient Fine-Tuning）库实现。例如，在输入嵌入层前插入10个可训练的虚拟标记（num_virtual_tokens=10），这些标记的嵌入向量通过反向传播优化。代码中，首先通过PromptTuningConfig配置软提示参数，再使用get_peft_model将预训练模型转换为支持提示微调的结构：
+peft_config = PromptTuningConfig(task_type="SEQ_CLS", num_virtual_tokens=10)  
+model = get_peft_model(pretrained_model, peft_config)  
+训练时仅更新软提示向量和分类头参数，冻结模型其余部分，目标函数为交叉熵损失：
+loss = outputs.loss  # 计算损失  
+optimizer.step(grads)  # 反向传播更新参数  
+
+2-3 技术细节
+2-3-1基础库函数
+- AutoModelForSequenceClassification.from_pretrained()：
+功能：功能：加载预训练模型（如RoBERTa-large）并适配下游分类任务，自动添加分类头。
+来源：mindnlp.transformers
+- AutoTokenizer.from_pretrained()：
+功能：加载与预训练模型匹配的分词器，支持动态填充与截断。
+来源：mindnlp.transformers
+- get_peft_model()：
+功能：将预训练模型转为支持提示微调的结构，注入可训练的软提示嵌入层。
+来源：mindnlp.peft
+- evaluate.load("accuracy")：
+功能：加载准确率评估指标，计算模型预测结果与真实标签的一致性。
+来源：evaluate库
+2-3-2 自定义功能模块：
+数据预处理类（MovieReview）
+核心方法：
+__init__()：初始化数据集路径，自动读取.pos和.neg文件，调用read_data完成文本清洗与词表构建。
+read_data()：通过正则表达式链式替换（如.replace('\"','').replace('.','')）去除标点、数字等噪声字符，保留纯净文本。
+text2vec()：动态构建词表字典（self.Vocab），将文本转换为固定长度（maxlen=51）的索引序列，实现文本向量化。
+create_dataset()：封装为MindSpore的GeneratorDataset，生成可迭代的数据管道，支持批量加载（batch_size=64）。
+作用：完成从原始文本到模型可处理张量的端到端转换，为硬/软提示训练提供标准化输入。
+硬提示推理函数（inference_with_hard_prompt）
+实现逻辑：
+1.动态拼接提示模板与输入文本
+（如f"{HARD_PROMPT}{' '.join([vocab_inv[idx] ...])"），构造完整输入序列。
+2.调用tokenizer对拼接后的文本编码，生成input_ids和attention_mask。
+3.使用预训练模型进行推理，通过outputs.logits.argmax(-1)获取预测标签。
+4.利用evaluate库计算准确率，验证硬提示的零样本性能。
+软提示训练流程
+关键代码段：
+# 配置软提示参数与模型  
+peft_config = PromptTuningConfig(task_type="SEQ_CLS", num_virtual_tokens=10)  
+model = get_peft_model(AutoModelForSequenceClassification.from_pretrained(...), peft_config)  
+  
+# 定义训练循环  
+for epoch in range(num_epochs):  
+    model.set_train()  
+    for batch in dataset:  
+        loss, grads = grad_fn(**batch)  # 计算损失与梯度  
+        optimizer.step(grads)  # 更新参数  
+技术细节：
+1.仅优化软提示嵌入（1.06M参数）与分类头，冻结模型主体参数（355M），大幅降低计算开销。
+2.使用线性学习率调度器（get_linear_schedule_with_warmup），逐步调整训练步长，防止过拟合。
+
+3.Experiment Results
+3-1 执行GLUE数据集上的软提示训练代码
+这里直接使用了给出的参考代码roberta_sequence_classification.ipynb，并进行了简单的修改使程序能正确运行在mindspore平台（如默认transformers版本为4.38.0，和其他库存在冲突，因此这里添加了uninstall transformers代码）。
+因此提交的实验代码/报告压缩包内不包含该代码，仅包含3-2使用的代码。
+配置环境，安装需要的依赖：
+
+
+设置软提示训练所需的参数，导入tokenizer并进行配置：
+
+载入数据集，定义相关函数，并打印出训练数据集的数据以做中间节点验证：
+
+
+
+加载模型，打印微调参数量和可训练参数：
+
+
+模型微调，指定优化器和学习率调整策略，打印参与微调的模型参数：
+
+最后进行软提示训练和结果评估：
+
+从打印结果可以看出，评估时，模型的准确度在70%到72%之间，指标f1值在0.82到0.83之间，训练模型大致可靠，符合预期：
+
+
+3-2在情感分类任务上实现硬提示与软提示训练
+（两个部分截图形式不一样是因为有一台windows，一台mac，两台电脑使用的截图方式不一样。）
+按照上述方式配置环境并安装所需依赖（这里仅展示实验过程和部分代码，完整代码见报告同文件夹下lab3-3220103450.ipynb文件，下同）：
+
+随后进行数据预处理，包括导入数据集，完成文本清理、分词等（本部分代码基本参照TextCNN_Mindspore.ipynb内的实现）：
+
+硬提示微调部分，在加上固定自然语言提示（“这个句子的情感是：”）后，不经过训练而直接进行推理：
+
+评估得到未经过训练的硬提示推理的准确率在50.00%左右：
+
+软提示训练，这部分基本参照给出的roberta_sequence_classification.ipynb内代码的实现，仅做少量修改（如batch_size=8）以实现代码的正常运行（实验中途出现过平台报错显存不够的情况，所以把并行度调低了），因此不做赘述（详见3-1部分）：
+
+评估得到经过软提示训练后模型的准确率在68%到72%之间，可以认为软提示模型在情感分类任务中表现稳定，准确率较高：
+
+3-3结果分析
+根据实验结果，硬提示训练得到模型的准确率在50%左右，而软提示训练后得到模型的准确率在68%到72%之间，与之相比有较大提升。
+从实验结果来看，比起硬提示微调，软提示微调具有更高的准确率，能够更加灵活地提取任务相关特征、适应任务需求。
+然而，软提示微调仍存在一定改进空间，例如训练时间更长，计算成本高，还有参数都以向量表示而缺乏直观语义因此可解释性不足等等，后续可以结合可视化分析等技术对其进行优化和发展。
+References:
+1.The Power of Scale for Parameter-Efficient Prompt Tuning
+2.Prompt-Tuning——深度解读一种新的微调范式_prompt tuning-CSDN博客
+3.Prompt Tuning Techniques | GeeksforGeeks
